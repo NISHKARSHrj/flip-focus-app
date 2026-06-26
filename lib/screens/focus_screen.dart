@@ -1,8 +1,12 @@
 import 'dart:async';
+import 'package:sensors_plus/sensors_plus.dart';
+
+import 'package:flip/core/constants/colors.dart';
 
 import 'package:flutter/material.dart';
-import 'package:sensors_plus/sensors_plus.dart';
-// import 'package:flip/core/constants/colors.dart';
+
+import 'package:flip/widgets/status_chip.dart';
+import 'package:flip/widgets/timer_circle.dart';
 
 class FocusScreen extends StatefulWidget {
   const FocusScreen({super.key});
@@ -27,19 +31,19 @@ class _FocusScreenState extends State<FocusScreen> {
       if (z > 8) {
         setState(() {
           phoneState = "Face Up";
-          stoptimer();
         });
+        stoptimer();
       } else if (z < -8) {
         setState(() {
           phoneState = "Face Down";
-          startTimer();
         });
+        startTimer();
       }
     });
   }
 
   void startTimer() {
-    debugPrint("Timer Started");
+    // debugPrint("Timer Started");
     if (isRunning) return;
     isRunning = true;
 
@@ -56,9 +60,61 @@ class _FocusScreenState extends State<FocusScreen> {
   }
 
   void stoptimer() {
-    debugPrint("Timer Started");
+    // debugPrint("Timer stp")
     timer?.cancel();
     isRunning = false;
+  }
+
+  void resettimer() {
+    timer?.cancel();
+
+    setState(() {
+      secondsremaining = 1500;
+
+      isRunning = false;
+
+      phoneState = "Face Up";
+    });
+  }
+
+  void endSession() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: AppColors.card,
+
+          title: const Text(
+            "End Focus Session",
+            style: TextStyle(color: AppColors.text),
+          ),
+
+          content: const Text(
+            "Your current focus session will end.",
+            style: TextStyle(color: AppColors.secondaryText),
+          ),
+
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: const Text("Cancel"),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                timer?.cancel();
+                Navigator.pop(context);
+                Navigator.pop(context);
+              },
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+
+              child: const Text("End"),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   String formatTime(int seconds) {
@@ -81,65 +137,94 @@ class _FocusScreenState extends State<FocusScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF07070D),
+      backgroundColor: AppColors.background,
 
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(20),
-
           child: Column(
             children: [
-              const SizedBox(height: 40),
-
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 10,
-                ),
-
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade900,
-                  borderRadius: BorderRadius.circular(30),
-                ),
-
-                child: Text(
-                  phoneState,
-
-                  style: const TextStyle(color: Colors.white, fontSize: 16),
-                ),
+              Row(
+                children: [
+                  IconButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                    icon: Icon(Icons.arrow_back_ios_new, color: AppColors.text),
+                  ),
+                  const SizedBox(width: 16),
+                  Text(
+                    "Focus",
+                    style: TextStyle(
+                      color: AppColors.text,
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
               ),
+              const SizedBox(height: 24),
+
+              Center(child: StatusChip(isRunning: isRunning)),
 
               const SizedBox(height: 60),
 
-              Container(
-                height: 250,
-                width: 250,
+              Center(child: TimerCircle(time: formatTime(secondsremaining))),
 
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
+              const SizedBox(height: 30),
 
-                  border: Border.all(color: Colors.purple, width: 4),
-                ),
+              SizedBox(
+                width: double.infinity,
 
-                child: Center(
-                  child: Text(
-                    formatTime(secondsremaining),
+                child: ElevatedButton.icon(
+                  onPressed: resettimer,
 
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 42,
-                      fontWeight: FontWeight.bold,
+                  icon: const Icon(Icons.refresh),
+
+                  label: const Text("Reset Timer"),
+
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: AppColors.text,
+
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadiusGeometry.circular(18),
                     ),
                   ),
                 ),
               ),
+              const SizedBox(height: 16),
 
-              const SizedBox(height: 40),
+              SizedBox(
+                width: double.infinity,
+
+                child: ElevatedButton.icon(
+                  onPressed: endSession,
+
+                  icon: const Icon(Icons.stop_circle),
+
+                  label: const Text("End Session"),
+
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red,
+
+                    foregroundColor: AppColors.text,
+
+                    padding: const EdgeInsets.symmetric(vertical: 18),
+
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(18),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
 
               Text(
                 isRunning ? "Focus Session Active" : "Waiting For Face Down",
-
-                style: const TextStyle(color: Colors.white70, fontSize: 18),
+                style: const TextStyle(color: AppColors.text, fontSize: 18),
               ),
             ],
           ),
