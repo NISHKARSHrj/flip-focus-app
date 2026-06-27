@@ -8,6 +8,9 @@ import 'package:flutter/material.dart';
 import 'package:flip/widgets/status_chip.dart';
 import 'package:flip/widgets/timer_circle.dart';
 
+import 'package:flip/core/models/focus_session.dart';
+import 'package:flip/core/services/storage_service.dart';
+
 class FocusScreen extends StatefulWidget {
   const FocusScreen({super.key});
 
@@ -75,6 +78,24 @@ class _FocusScreenState extends State<FocusScreen> {
 
       phoneState = "Face Up";
     });
+  }
+
+  Future<void> saveCurrentSession() async {
+    if (secondsremaining == 1500) return;
+
+    int focusedSeconds = 1500 - secondsremaining;
+
+    FocusSession session = FocusSession(
+      duration: focusedSeconds,
+
+      date: DateTime.now().toString(),
+      sound: "Rain",
+    );
+
+
+    await StorageService.saveSession(session);
+
+    debugPrint("Session Saved Successfully");
   }
 
   void endSession() {
