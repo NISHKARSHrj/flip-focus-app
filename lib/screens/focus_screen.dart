@@ -11,6 +11,8 @@ import 'package:flip/widgets/timer_circle.dart';
 import 'package:flip/core/models/focus_session.dart';
 import 'package:flip/core/services/storage_service.dart';
 
+import 'package:vibration/vibration.dart';
+
 class FocusScreen extends StatefulWidget {
   const FocusScreen({super.key});
 
@@ -24,30 +26,63 @@ class _FocusScreenState extends State<FocusScreen> {
   int secondsremaining = 1500; //25 min
   bool isRunning = false;
 
+  bool isFaceDown = false;
+  bool isSessionRunning = false;
+
+  double previousX = 0;
+  double previousY = 0;
+  double previousZ = 0;
   @override
   void initState() {
     super.initState();
 
     accelerometerEventStream().listen((event) {
+      double x = event.x;
+      double y = event.y;
       double z = event.z;
 
-      if (z > 8) {
-        setState(() {
-          phoneState = "Face Up";
-        });
-        stoptimer();
-      } else if (z < -8) {
-        setState(() {
-          phoneState = "Face Down";
-        });
-        startTimer();
+      if (z < -9 && x.abs() < 2 && y.abs() < 2) {
+        if (!isFaceDown) {
+          isFaceDown = true;
+
+          setState(() {
+            phoneState = "Face Down";
+          });
+
+          startTimer();
+        }
+      } else {
+        if (isFaceDown) {
+          isFaceDown = false;
+
+          setState(() {
+            phoneState = "Phone Lifted";
+          });
+
+          stoptimer();
+        }
       }
+
+      previousX = x;
+      previousY = y;
+      previousZ = z;
     });
+  }
+
+  Future<void> vibratePhone() async {
+    // Check karo ki device vibration support karta hai ya nahi
+    bool? hasVibrator = await Vibration.hasVibrator();
+
+    if (hasVibrator == true) {
+      // 150 milliseconds ki vibration
+      Vibration.vibrate(duration: 150);
+    }
   }
 
   void startTimer() {
     // debugPrint("Timer Started");
     if (isRunning) return;
+    vibratePhone();
     isRunning = true;
 
     timer = Timer.periodic(const Duration(seconds: 1), (timer) {
@@ -66,6 +101,7 @@ class _FocusScreenState extends State<FocusScreen> {
     // debugPrint("Timer stp")
     timer?.cancel();
     isRunning = false;
+    vibratePhone();
   }
 
   void resettimer() {
@@ -91,7 +127,6 @@ class _FocusScreenState extends State<FocusScreen> {
       date: DateTime.now().toString(),
       sound: "Rain",
     );
-
 
     await StorageService.saveSession(session);
 
