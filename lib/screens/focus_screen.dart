@@ -12,6 +12,7 @@ import 'package:flip/core/models/focus_session.dart';
 import 'package:flip/core/services/storage_service.dart';
 
 import 'package:vibration/vibration.dart';
+import 'package:proximity_sensor/proximity_sensor.dart';
 
 class FocusScreen extends StatefulWidget {
   const FocusScreen({super.key});
@@ -32,9 +33,21 @@ class _FocusScreenState extends State<FocusScreen> {
   double previousX = 0;
   double previousY = 0;
   double previousZ = 0;
+
+  bool isNear = false;
+  late StreamSubscription<dynamic> proximitySubscription;
   @override
   void initState() {
     super.initState();
+
+    proximitySubscription =
+      ProximitySensor.events.listen((event) {
+
+    setState(() {
+      isNear = event > 0;
+    });
+
+  });
 
     accelerometerEventStream().listen((event) {
       double x = event.x;
@@ -186,6 +199,7 @@ class _FocusScreenState extends State<FocusScreen> {
 
   @override
   void dispose() {
+    proximitySubscription.cancel();
     timer?.cancel();
     super.dispose();
   }
@@ -281,6 +295,10 @@ class _FocusScreenState extends State<FocusScreen> {
               Text(
                 isRunning ? "Focus Session Active" : "Waiting For Face Down",
                 style: const TextStyle(color: AppColors.text, fontSize: 18),
+              ),
+              Text(
+                isNear ? "Near" : "Far",
+                style: const TextStyle(color: Colors.white, fontSize: 20),
               ),
             ],
           ),
