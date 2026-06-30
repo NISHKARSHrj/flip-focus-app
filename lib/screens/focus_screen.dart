@@ -13,6 +13,7 @@ import 'package:flip/core/services/storage_service.dart';
 
 import 'package:vibration/vibration.dart';
 import 'package:proximity_sensor/proximity_sensor.dart';
+import 'package:do_not_disturb/do_not_disturb.dart';
 
 class FocusScreen extends StatefulWidget {
   const FocusScreen({super.key});
@@ -36,18 +37,17 @@ class _FocusScreenState extends State<FocusScreen> {
 
   bool isNear = false;
   late StreamSubscription<dynamic> proximitySubscription;
+
+  final dndPlugin = DoNotDisturbPlugin();
   @override
   void initState() {
     super.initState();
 
-    proximitySubscription =
-      ProximitySensor.events.listen((event) {
-
-    setState(() {
-      isNear = event > 0;
+    proximitySubscription = ProximitySensor.events.listen((event) {
+      setState(() {
+        isNear = event > 0;
+      });
     });
-
-  });
 
     accelerometerEventStream().listen((event) {
       double x = event.x;
@@ -92,9 +92,24 @@ class _FocusScreenState extends State<FocusScreen> {
     }
   }
 
+  Future<void> enableDND() async {
+    bool hasAccess = await dndPlugin.isNotificationPolicyAccessGranted();
+
+    if (hasAccess) {
+      await dndPlugin.setInterruptionFilter(InterruptionFilter.none);
+    } else {
+      await dndPlugin.openNotificationPolicyAccessSettings();
+    }
+  }
+
+  Future<void> disableDND() async {
+    await dndPlugin.setInterruptionFilter(InterruptionFilter.all);
+  }
+
   void startTimer() {
     // debugPrint("Timer Started");
     if (isRunning) return;
+    enableDND();
     vibratePhone();
     isRunning = true;
 
@@ -113,13 +128,14 @@ class _FocusScreenState extends State<FocusScreen> {
   void stoptimer() {
     // debugPrint("Timer stp")
     timer?.cancel();
+    disableDND();
     isRunning = false;
     vibratePhone();
   }
 
   void resettimer() {
     timer?.cancel();
-
+    disableDND();
     setState(() {
       secondsremaining = 1500;
 
