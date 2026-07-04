@@ -2,8 +2,67 @@ import 'package:flutter/material.dart';
 import 'package:flip/core/constants/colors.dart';
 import 'package:flip/screens/focus_screen.dart';
 
-class HomeScreen extends StatelessWidget {
+import 'package:do_not_disturb/do_not_disturb.dart';
+
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  final dndPlugin = DoNotDisturbPlugin();
+
+  Future<void> checkDNDPermission() async {
+    bool hasPermission = await dndPlugin.isNotificationPolicyAccessGranted();
+
+    if (!hasPermission) {
+      showDNDDialog();
+    }
+  }
+
+  Future<void> showDNDDialog() async {
+    await showDialog<void>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text(
+            'Enable Do Not Disturb',
+            style: TextStyle(color: AppColors.text),
+          ),
+
+          content: const Text(
+            'Flip needs Do Not Disturb permission to automatically block notifications while youre focusing.',
+            style: TextStyle(color: AppColors.secondaryText),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel'),
+            ),
+
+            ElevatedButton(
+              onPressed: () async {
+                Navigator.pop(context);
+                await dndPlugin.openNotificationPolicyAccessSettings();
+              },
+              child: const Text('Enable'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      checkDNDPermission();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {

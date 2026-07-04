@@ -13,8 +13,8 @@ import 'package:flip/core/services/storage_service.dart';
 
 import 'package:vibration/vibration.dart';
 import 'package:proximity_sensor/proximity_sensor.dart';
-import 'package:do_not_disturb/do_not_disturb.dart';
 
+import 'package:do_not_disturb/do_not_disturb.dart';
 class FocusScreen extends StatefulWidget {
   const FocusScreen({super.key});
 
@@ -54,7 +54,7 @@ class _FocusScreenState extends State<FocusScreen> {
       double y = event.y;
       double z = event.z;
 
-      if (z < -9 && x.abs() < 2 && y.abs() < 2) {
+      if (z < -9 && x.abs() < 2 && y.abs() < 2 && isNear) {
         if (!isFaceDown) {
           isFaceDown = true;
 
@@ -65,7 +65,7 @@ class _FocusScreenState extends State<FocusScreen> {
           startTimer();
         }
       } else {
-        if (isFaceDown) {
+        if (isFaceDown && !isNear) {
           isFaceDown = false;
 
           setState(() {
@@ -75,10 +75,6 @@ class _FocusScreenState extends State<FocusScreen> {
           stoptimer();
         }
       }
-
-      previousX = x;
-      previousY = y;
-      previousZ = z;
     });
   }
 
@@ -93,24 +89,19 @@ class _FocusScreenState extends State<FocusScreen> {
   }
 
   Future<void> enableDND() async {
-    bool hasAccess = await dndPlugin.isNotificationPolicyAccessGranted();
-
-    if (hasAccess) {
-      await dndPlugin.setInterruptionFilter(InterruptionFilter.none);
-    } else {
-      await dndPlugin.openNotificationPolicyAccessSettings();
-    }
+    await dndPlugin.setInterruptionFilter(InterruptionFilter.none);
   }
 
   Future<void> disableDND() async {
     await dndPlugin.setInterruptionFilter(InterruptionFilter.all);
   }
 
-  void startTimer() {
+  Future<void> startTimer() async {
     // debugPrint("Timer Started");
     if (isRunning) return;
-    enableDND();
-    vibratePhone();
+    await enableDND();
+    await vibratePhone();
+
     isRunning = true;
 
     timer = Timer.periodic(const Duration(seconds: 1), (timer) {
@@ -121,27 +112,29 @@ class _FocusScreenState extends State<FocusScreen> {
       } else {
         timer.cancel();
         isRunning = false;
+        disableDND();
       }
     });
   }
 
-  void stoptimer() {
+  Future<void> stoptimer() async {
     // debugPrint("Timer stp")
     timer?.cancel();
-    disableDND();
+    await disableDND();
+    await vibratePhone();
     isRunning = false;
-    vibratePhone();
   }
 
-  void resettimer() {
+  void resettimer() async {
     timer?.cancel();
-    disableDND();
+    await disableDND();
     setState(() {
       secondsremaining = 1500;
 
       isRunning = false;
 
       phoneState = "Face Up";
+      isFaceDown = false;
     });
   }
 
@@ -187,7 +180,8 @@ class _FocusScreenState extends State<FocusScreen> {
               child: const Text("Cancel"),
             ),
             ElevatedButton(
-              onPressed: () {
+              onPressed: () async {
+                await disableDND();
                 timer?.cancel();
                 Navigator.pop(context);
                 Navigator.pop(context);
@@ -311,10 +305,6 @@ class _FocusScreenState extends State<FocusScreen> {
               Text(
                 isRunning ? "Focus Session Active" : "Waiting For Face Down",
                 style: const TextStyle(color: AppColors.text, fontSize: 18),
-              ),
-              Text(
-                isNear ? "Near" : "Far",
-                style: const TextStyle(color: Colors.white, fontSize: 20),
               ),
             ],
           ),
