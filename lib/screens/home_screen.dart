@@ -27,6 +27,7 @@ class _HomeScreenState extends State<HomeScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
+          backgroundColor: AppColors.card,
           title: const Text(
             'Enable Do Not Disturb',
             style: TextStyle(color: AppColors.text),
