@@ -10,11 +10,13 @@ import 'package:flip/widgets/timer_circle.dart';
 
 import 'package:flip/core/models/focus_session.dart';
 import 'package:flip/core/services/storage_service.dart';
+import 'package:flip/core/services/sound_service.dart';
 
 import 'package:vibration/vibration.dart';
 import 'package:proximity_sensor/proximity_sensor.dart';
 
 import 'package:do_not_disturb/do_not_disturb.dart';
+
 class FocusScreen extends StatefulWidget {
   const FocusScreen({super.key});
 
@@ -29,11 +31,6 @@ class _FocusScreenState extends State<FocusScreen> {
   bool isRunning = false;
 
   bool isFaceDown = false;
-  bool isSessionRunning = false;
-
-  double previousX = 0;
-  double previousY = 0;
-  double previousZ = 0;
 
   bool isNear = false;
   late StreamSubscription<dynamic> proximitySubscription;
@@ -89,7 +86,7 @@ class _FocusScreenState extends State<FocusScreen> {
   }
 
   Future<void> enableDND() async {
-    await dndPlugin.setInterruptionFilter(InterruptionFilter.none);
+    await dndPlugin.setInterruptionFilter(InterruptionFilter.alarms);
   }
 
   Future<void> disableDND() async {
@@ -101,18 +98,29 @@ class _FocusScreenState extends State<FocusScreen> {
     if (isRunning) return;
     await enableDND();
     await vibratePhone();
+    await SoundService.playRain();
 
     isRunning = true;
 
-    timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+    timer = Timer.periodic(const Duration(seconds: 1), (timer) async {
       if (secondsremaining > 0) {
         setState(() {
           secondsremaining--;
         });
       } else {
         timer.cancel();
-        isRunning = false;
-        disableDND();
+        await SoundService.stopRain();
+
+        await disableDND();
+
+        await SoundService.playComplete();
+
+        await Vibration.vibrate(duration: 1000);
+
+        setState(() {
+          isRunning = false;
+        });
+        showSessionCompleteDialog();
       }
     });
   }
@@ -122,12 +130,19 @@ class _FocusScreenState extends State<FocusScreen> {
     timer?.cancel();
     await disableDND();
     await vibratePhone();
-    isRunning = false;
+    await SoundService.stopRain();
+
+    setState(() {
+      isRunning = false;
+    });
   }
 
-  void resettimer() async {
+  Future<void> resettimer() async {
     timer?.cancel();
+
     await disableDND();
+    await SoundService.stopRain();
+
     setState(() {
       secondsremaining = 1500;
 
@@ -182,6 +197,9 @@ class _FocusScreenState extends State<FocusScreen> {
             ElevatedButton(
               onPressed: () async {
                 await disableDND();
+                await SoundService.stopRain();
+                await saveCurrentSession();
+
                 timer?.cancel();
                 Navigator.pop(context);
                 Navigator.pop(context);
@@ -189,6 +207,76 @@ class _FocusScreenState extends State<FocusScreen> {
               style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
 
               child: const Text("End"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void showSessionCompleteDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: AppColors.card,
+
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+
+          title: const Column(
+            children: [
+              Icon(Icons.emoji_events_rounded, color: Colors.amber, size: 55),
+              SizedBox(height: 12),
+
+              Text(
+                "Focus Session Complete!",
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: AppColors.text,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                "Great work! You stayed focused.",
+                textAlign: TextAlign.center,
+                style: TextStyle(color: AppColors.secondaryText),
+              ),
+
+              const SizedBox(height: 20),
+
+              Text(
+                formatTime(1500 - secondsremaining),
+                style: TextStyle(
+                  color: AppColors.primary,
+                  fontSize: 34,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          actionsAlignment: MainAxisAlignment.spaceBetween,
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                Navigator.pop(context);
+              },
+              child: const Text("Home"),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context);
+                resettimer();
+              },
+              child: const Text("Start Again"),
             ),
           ],
         );
@@ -210,7 +298,13 @@ class _FocusScreenState extends State<FocusScreen> {
   @override
   void dispose() {
     proximitySubscription.cancel();
+
     timer?.cancel();
+
+    SoundService.stopAll();
+
+    disableDND();
+
     super.dispose();
   }
 
