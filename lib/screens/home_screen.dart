@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flip/core/constants/colors.dart';
 import 'package:flip/screens/focus_screen.dart';
+import 'package:flip/core/services/battery_service.dart';
+import 'package:flip/widgets/permission_dialog.dart';
+import 'package:flip/core/services/onboarding_service.dart';
 
 import 'package:do_not_disturb/do_not_disturb.dart';
 
@@ -11,58 +14,82 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   final dndPlugin = DoNotDisturbPlugin();
 
   Future<void> checkDNDPermission() async {
     bool hasPermission = await dndPlugin.isNotificationPolicyAccessGranted();
 
     if (!hasPermission) {
-      showDNDDialog();
+      await dndPlugin.openNotificationPolicyAccessSettings();
+    } else {
+      debugPrint("DND Permission Already Granted");
     }
   }
 
-  Future<void> showDNDDialog() async {
-    await showDialog<void>(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          backgroundColor: AppColors.card,
-          title: const Text(
-            'Enable Do Not Disturb',
-            style: TextStyle(color: AppColors.text),
-          ),
+  Future<void> checkBatteryOptimization() async {
+    bool isDisabled = await BatteryService.isBatteryOptimizationDisabled();
 
-          content: const Text(
-            'Flip needs Do Not Disturb permission to automatically block notifications while youre focusing.',
-            style: TextStyle(color: AppColors.secondaryText),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Cancel'),
-            ),
+    if (!isDisabled) {
+      await BatteryService.requestDisableBatteryOptimization();
+    }
+  }
 
-            ElevatedButton(
-              onPressed: () async {
-                Navigator.pop(context);
-                await dndPlugin.openNotificationPolicyAccessSettings();
-              },
-              child: const Text('Enable'),
-            ),
-          ],
-        );
-      },
-    );
+  Future<void> completeOnboarding() async {
+    await checkDNDPermission();
+    await checkBatteryOptimization();
+    await OnboardingService.setOnboardingCompleted();
+  }
+
+  Future<void> checkOnboarding() async {
+    bool completed = await OnboardingService.isOnboardingCompleted();
+
+    if (!completed) {
+      if (!mounted) return;
+
+      showPermissionDialog(
+        context,
+        onContinue: () async {
+          await completeOnboarding();
+        },
+      );
+    }
   }
 
   @override
   void initState() {
     super.initState();
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      checkDNDPermission();
+    WidgetsBinding.instance.addObserver(this);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      checkOnboarding();
     });
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) async {
+    if (state == AppLifecycleState.resumed) {
+      debugPrint("App Resumed");
+
+      bool hasDnd = await dndPlugin.isNotificationPolicyAccessGranted();
+
+      bool batteryDisabled =
+          await BatteryService.isBatteryOptimizationDisabled();
+      if (hasDnd && !batteryDisabled) {
+        await checkBatteryOptimization();
+        return;
+      }
+      if (hasDnd && batteryDisabled) {
+        await OnboardingService.setOnboardingCompleted();
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
   }
 
   @override
