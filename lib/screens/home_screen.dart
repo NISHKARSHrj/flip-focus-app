@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flip/core/constants/colors.dart';
-import 'package:flip/screens/focus_screen.dart';
+// import 'package:flip/screens/focus_screen.dart';
 import 'package:flip/core/services/battery_service.dart';
 import 'package:flip/widgets/permission_dialog.dart';
 import 'package:flip/core/services/onboarding_service.dart';
+import 'package:flip/core/services/background_service.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 import 'package:do_not_disturb/do_not_disturb.dart';
 
@@ -27,6 +29,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     }
   }
 
+  Future<void> checkNotificationPermission() async {
+    if (await Permission.notification.isDenied) {
+      await Permission.notification.request();
+    }
+  }
+
   Future<void> checkBatteryOptimization() async {
     bool isDisabled = await BatteryService.isBatteryOptimizationDisabled();
 
@@ -36,6 +44,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   }
 
   Future<void> completeOnboarding() async {
+    await checkNotificationPermission();
     await checkDNDPermission();
     await checkBatteryOptimization();
     await OnboardingService.setOnboardingCompleted();
@@ -174,24 +183,25 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
+                  onPressed: () async {
+                    await BackgroundService.start();
+                    // Navigator.push(
+                    //   context,
 
-                      PageRouteBuilder(
-                        pageBuilder: (context, animation, secondaryAnimation) =>
-                            const FocusScreen(),
+                    //   PageRouteBuilder(
+                    //     pageBuilder: (context, animation, secondaryAnimation) =>
+                    //         const FocusScreen(),
 
-                        transitionsBuilder:
-                            (context, animation, secondaryAnimation, child) {
-                              return FadeTransition(
-                                opacity: animation,
+                    //     transitionsBuilder:
+                    //         (context, animation, secondaryAnimation, child) {
+                    //           return FadeTransition(
+                    //             opacity: animation,
 
-                                child: child,
-                              );
-                            },
-                      ),
-                    );
+                    //             child: child,
+                    //           );
+                    //         },
+                    //   ),
+                    // );
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,

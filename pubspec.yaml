@@ -40,8 +40,8 @@ dependencies:
   proximity_sensor: ^1.0.4
   do_not_disturb: ^1.0.3
   audioplayers: ^6.5.0
-
-
+  disable_battery_optimizations_latest: ^1.0.0
+  permission_handler: ^12.0.1
 
 dev_dependencies:
   flutter_test:
