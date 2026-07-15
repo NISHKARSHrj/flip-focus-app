@@ -14,7 +14,7 @@ import com.example.flip.helpers.SensorCallback
 import com.example.flip.helpers.DNDHelper
 import com.example.flip.helpers.TimerHelper
 import com.example.flip.helpers.SoundHelper
-
+import com.example.flip.helpers.VibrationHelper
 class FlipForegroundService : Service(), SensorCallback {
     private lateinit var sensorHelper: SensorManagerHelper
 
@@ -57,6 +57,7 @@ class FlipForegroundService : Service(), SensorCallback {
     }
     override fun onFaceDown() {
         android.util.Log.d("FlipService", "📱 PHONE IS FACE DOWN!")
+        VibrationHelper.vibrateShort(this)
         DNDHelper.enable(this)
         TimerHelper.start{ time ->
 
@@ -76,6 +77,6 @@ class FlipForegroundService : Service(), SensorCallback {
         val formatted =TimerHelper.formatDuration(duration)
         NotificationHelper.showSessionComplete(this, formatted)
         Log.d("FlipService", "Session Duration = $duration")
-
+        VibrationHelper.vibrateSuccess(this)
     }
 }
