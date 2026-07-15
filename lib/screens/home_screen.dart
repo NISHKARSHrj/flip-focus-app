@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flip/core/constants/colors.dart';
-// import 'package:flip/screens/focus_screen.dart';
+import 'package:flip/screens/focus_screen.dart';
 import 'package:flip/core/services/battery_service.dart';
 import 'package:flip/widgets/permission_dialog.dart';
 import 'package:flip/core/services/onboarding_service.dart';
@@ -185,23 +185,23 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 child: ElevatedButton(
                   onPressed: () async {
                     await BackgroundService.start();
-                    // Navigator.push(
-                    //   context,
+                    Navigator.push(
+                      context,
 
-                    //   PageRouteBuilder(
-                    //     pageBuilder: (context, animation, secondaryAnimation) =>
-                    //         const FocusScreen(),
+                      PageRouteBuilder(
+                        pageBuilder: (context, animation, secondaryAnimation) =>
+                            const FocusScreen(),
 
-                    //     transitionsBuilder:
-                    //         (context, animation, secondaryAnimation, child) {
-                    //           return FadeTransition(
-                    //             opacity: animation,
+                        transitionsBuilder:
+                            (context, animation, secondaryAnimation, child) {
+                              return FadeTransition(
+                                opacity: animation,
 
-                    //             child: child,
-                    //           );
-                    //         },
-                    //   ),
-                    // );
+                                child: child,
+                              );
+                            },
+                      ),
+                    );
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,

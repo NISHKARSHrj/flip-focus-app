@@ -9,8 +9,9 @@ import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import com.example.flip.helpers.NotificationHelper
 import com.example.flip.helpers.SensorManagerHelper
-
-class FlipForegroundService : Service() {
+import com.example.flip.helpers.SensorCallback
+import com.example.flip.helpers.DNDHelper
+class FlipForegroundService : Service(), SensorCallback {
     private lateinit var sensorHelper: SensorManagerHelper
 
     override fun onCreate() {
@@ -24,7 +25,7 @@ class FlipForegroundService : Service() {
             1,
             NotificationHelper.createNotification(this)
         )
-        sensorHelper = SensorManagerHelper(this)
+        sensorHelper = SensorManagerHelper(this,this)
         sensorHelper.startListening()
     }
 
@@ -49,5 +50,14 @@ class FlipForegroundService : Service() {
         super.onDestroy()
         sensorHelper.stopListening()
         android.util.Log.d("FlipService", "Service Destroyed")
+    }
+    override fun onFaceDown() {
+        android.util.Log.d("FlipService", "📱 PHONE IS FACE DOWN!")
+        DNDHelper.enable(this)
+    }
+
+    override fun onPhoneLifted() {
+        android.util.Log.d("FlipService", "📱 PHONE LIFTED!")
+        DNDHelper.disable(this)
     }
 }

@@ -17,7 +17,7 @@ interface SensorCallback {
 
 
 class SensorManagerHelper(
-    private val context: Context
+    private val context: Context,
     private val callback: SensorCallback
 ) : SensorEventListener {
 
