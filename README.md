@@ -212,10 +212,6 @@ On first launch, Flip will ask for:
 </table>
 </div>
 
-## 🎬 Demo
-
-> _Coming soon — a short GIF showing the flip → focus → lift flow will go here._
-
 ---
 
 ## 🗺️ Roadmap
