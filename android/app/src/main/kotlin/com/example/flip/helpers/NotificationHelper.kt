@@ -27,13 +27,39 @@ object NotificationHelper {
         manager.createNotificationChannel(channel)
     }
 }
-fun createNotification(context: Context): Notification {
+    fun showIdleNotification(context: Context): Notification {
 
-    return NotificationCompat.Builder(context, CHANNEL_ID)
-        .setContentTitle("Flip")
-        .setContentText("Monitoring phone orientation...")
-        .setSmallIcon(R.mipmap.ic_launcher)
-        .setOngoing(true)
-        .build()
-}
+        return NotificationCompat.Builder(context, CHANNEL_ID)
+            .setContentTitle("Flip")
+            .setContentText("Waiting for phone to flip...")
+            .setSmallIcon(R.mipmap.ic_launcher)
+            .setOngoing(true)
+            .build()
+    }
+
+    fun showFocusNotification(
+        context: Context,
+        duration: String,
+    ): Notification {
+
+        return NotificationCompat.Builder(context, CHANNEL_ID)
+            .setSmallIcon(R.mipmap.ic_launcher)
+            .setContentTitle("🎯 Focus Session")
+            .setContentText("⏱ $duration")
+            .setSubText("Stay Focused 💪")
+            .setOngoing(true)
+            .build()
+    }
+
+    fun updateFocusNotification(
+        context: Context,
+        duration: String
+    ) {
+
+        val notification = showFocusNotification(
+            context, duration
+        )
+        val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager 
+        manager.notify(1, notification)
+    }
 }

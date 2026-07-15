@@ -76,7 +76,7 @@ class SensorManagerHelper(
 
         if (event.sensor.type == Sensor.TYPE_PROXIMITY) {
 
-            isNear = event.values[0] == 0f
+            isNear = event.values[0] < proximitySensor!!.maximumRange
 
             Log.d("FlipSensor", "Near = $isNear")
 
@@ -104,11 +104,18 @@ class SensorManagerHelper(
                 callback.onFaceDown()
             }
 
-            if (!currentlyFaceDown && isFaceDown) {
+            // if (!currentlyFaceDown && isFaceDown) {
 
-                isFaceDown = false
+            //     isFaceDown = false
 
-                callback.onPhoneLifted()
+            //     callback.onPhoneLifted()
+            // }
+            if(isFaceDown) {
+                val lifted = z > -3
+                if(lifted) {
+                    isFaceDown = false
+                    callback.onPhoneLifted()
+                }
             }
         }
     }

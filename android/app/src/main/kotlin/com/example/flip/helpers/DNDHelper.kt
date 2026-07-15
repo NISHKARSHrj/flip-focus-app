@@ -15,7 +15,7 @@ object DNDHelper {
                         as NotificationManager
 
             manager.setInterruptionFilter(
-                NotificationManager.INTERRUPTION_FILTER_NONE
+                NotificationManager.INTERRUPTION_FILTER_PRIORITY
             )
 
             Log.d("FlipDND", "DND Enabled")
