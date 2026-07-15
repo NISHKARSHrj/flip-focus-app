@@ -73,8 +73,9 @@ class FlipForegroundService : Service(), SensorCallback {
         DNDHelper.disable(this)
         SoundHelper.stopRain()
         val duration = TimerHelper.stop()
-
-        Log.d("FlipService", "Session Duration = $duration ms")
+        val formatted =TimerHelper.formatDuration(duration)
+        NotificationHelper.showSessionComplete(this, formatted)
+        Log.d("FlipService", "Session Duration = $duration")
 
     }
 }

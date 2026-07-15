@@ -62,4 +62,23 @@ object NotificationHelper {
         val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager 
         manager.notify(1, notification)
     }
+    fun showSessionComplete(
+    context: Context,
+    duration: String
+    ) {
+
+        val notification = NotificationCompat.Builder(context, CHANNEL_ID)
+            .setSmallIcon(R.mipmap.ic_launcher)
+            .setContentTitle("🎉 Focus Complete")
+            .setContentText("Focused for $duration")
+            .setSubText("Keep Going 💪")
+            .setAutoCancel(true)
+            .build()
+
+        val manager =
+            context.getSystemService(Context.NOTIFICATION_SERVICE)
+                    as NotificationManager
+
+        manager.notify(1, notification)
+    }
 }
