@@ -6,11 +6,14 @@ import android.app.Service
 import android.content.Intent
 import android.os.Build
 import android.os.IBinder
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.example.flip.helpers.NotificationHelper
 import com.example.flip.helpers.SensorManagerHelper
 import com.example.flip.helpers.SensorCallback
 import com.example.flip.helpers.DNDHelper
+import com.example.flip.helpers.TimerHelper
+
 class FlipForegroundService : Service(), SensorCallback {
     private lateinit var sensorHelper: SensorManagerHelper
 
@@ -54,10 +57,14 @@ class FlipForegroundService : Service(), SensorCallback {
     override fun onFaceDown() {
         android.util.Log.d("FlipService", "📱 PHONE IS FACE DOWN!")
         DNDHelper.enable(this)
+        TimerHelper.start()
     }
 
     override fun onPhoneLifted() {
         android.util.Log.d("FlipService", "📱 PHONE LIFTED!")
         DNDHelper.disable(this)
+        val duration = TimerHelper.stop()
+
+        Log.d("FlipService", "Session Duration = $duration ms")
     }
 }

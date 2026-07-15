@@ -101,7 +101,6 @@ class SensorManagerHelper(
 
                 isFaceDown = true
 
-                Log.d("FlipSensor", "🚀 FACE DOWN DETECTED")
                 callback.onFaceDown()
             }
 
@@ -109,7 +108,6 @@ class SensorManagerHelper(
 
                 isFaceDown = false
 
-                Log.d("FlipSensor", "📱 PHONE LIFTED")
                 callback.onPhoneLifted()
             }
         }

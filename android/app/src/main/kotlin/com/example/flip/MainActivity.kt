@@ -9,6 +9,8 @@ import io.flutter.plugin.common.MethodChannel
 
 import androidx.core.content.ContextCompat
 
+import io.flutter.plugin.common.EventChannel
+
 class MainActivity : FlutterActivity() {
 
     private val CHANNEL = "flip/background"
