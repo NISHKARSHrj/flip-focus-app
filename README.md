@@ -2,7 +2,7 @@
 
 <img src="docs/screenshots/logo.png" width="120" alt="Flip logo" />
 
-# 🔄 Flip
+# Flip
 
 ### Flip your phone. Focus instantly.
 
