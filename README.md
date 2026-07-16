@@ -274,7 +274,7 @@ Distributed under the MIT License. See `LICENSE.md` for more information.
 
 ## 💬 Support
 
-If you run into an issue or have a feature idea, open an [issue](https://github.com/NISHKARSHrj/flip-focus-app/issues) — feedback shapes the roadmap above..
+If you run into an issue or have a feature idea, open an [issue](https://github.com/NISHKARSHrj/flip-focus-app/issues) — feedback shapes the roadmap above.
 
 ---
 
