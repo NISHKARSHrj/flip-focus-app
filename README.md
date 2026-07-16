@@ -139,23 +139,41 @@ In short: Flutter owns the UI, but the moment the phone goes face down, control 
 ## 📁 Project Structure
 
 ```
-flip/
-├── lib/                     # Flutter application
-│   ├── screens/              # App screens
-│   ├── widgets/              # Reusable UI components
-│   ├── providers/            # State management
-│   ├── services/             # Dart-side service layer (MethodChannel calls)
-│   └── helpers/              # Utility functions
-│
-└── android/
-    └── app/src/main/kotlin/.../
-        ├── FocusForegroundService.kt   # Core foreground service
-        ├── SensorFusionManager.kt      # Accelerometer + Proximity fusion
-        ├── FocusTimerEngine.kt         # Handler/Runnable timer loop
-        ├── DndController.kt            # DND enable/restore logic
-        ├── RainSoundPlayer.kt          # ExoPlayer-based ambient audio
-        ├── BootReceiver.kt             # Restarts service after reboot
-        └── MainActivity.kt             # MethodChannel registration
+lib/
+├── core/
+│   ├── constants/
+│   │   └── colors.dart              # App color palette
+│   ├── models/
+│   │   └── focus_session.dart       # Focus session data model
+│   └── services/
+│       ├── background_service.dart  # Background execution handling
+│       ├── battery_service.dart     # Battery optimization checks
+│       ├── onboarding_service.dart  # First-launch onboarding flow
+│       ├── sound_service.dart       # Ambient sound playback
+│       └── storage_service.dart     # Local session persistence
+├── main.dart                        # App entry point
+├── screens/
+│   ├── focus_screen.dart            # Active focus session screen
+│   ├── history_screen.dart          # Past sessions history
+│   ├── home_screen.dart             # Home / start screen
+│   └── stats_screen.dart            # Focus statistics
+└── widgets/
+    ├── history_card.dart            # Session history list item
+    ├── permission_dialog.dart       # Permission request UI
+    ├── status_chip.dart             # Status indicator chip
+    └── timer_circle.dart            # Circular timer UI
+ 
+android/app/src/main/kotlin/com/example/flip/
+├── BootReceiver.kt                  # Restarts service after device reboot
+├── FlipForegroundService.kt         # Core foreground service
+├── helpers/
+│   ├── DNDHelper.kt                 # Do Not Disturb enable/restore logic
+│   ├── NotificationHelper.kt        # Live notification management
+│   ├── SensorManagerHelper.kt       # Accelerometer + Proximity fusion
+│   ├── SoundHelper.kt               # Native ambient sound playback
+│   ├── TimerHelper.kt               # Handler/Runnable timer loop
+│   └── VibrationHelper.kt           # Haptic feedback
+└── MainActivity.kt                  # MethodChannel registration
 ```
 
 ---
